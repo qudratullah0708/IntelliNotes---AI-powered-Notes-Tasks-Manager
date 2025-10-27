@@ -1,4 +1,4 @@
-# TaskFlow Pro - AI-Powered Notes & Task Management System
+# Intelli Notes - Task Manager - AI-Powered Notes & Task Management System
 
 A modern, full-stack application for managing notes and todos with AI-powered summarization and text-to-speech capabilities.
 
