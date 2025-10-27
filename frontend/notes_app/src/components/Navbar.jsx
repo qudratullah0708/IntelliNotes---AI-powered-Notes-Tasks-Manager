@@ -10,7 +10,7 @@ const Navbar = () => {
           transition={{ duration: 0.6 }}
         >
           <h1 className="text-5xl font-display font-bold text-white tracking-tight mb-2">
-            AI Notes
+          IntelliNotes
           </h1>
           <p className="text-lg text-accent-yellow font-medium">
             Transform your thoughts into insights with AI-powered summarization

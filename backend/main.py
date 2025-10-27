@@ -7,13 +7,28 @@ import io
 import sqlite3
 from sqlalchemy.orm import Session
 from database import SessionLocal, engine
-from models import Base, Note
+from models import Base, Note, Todo
 from ai_utils import summarize_note
 
 # Ensure database schema is up to date
 Base.metadata.create_all(bind=engine)
 
-#
+# Add deadline column and rename category to priority
+try:
+    conn = sqlite3.connect('notes.db')
+    cursor = conn.cursor()
+    # Add deadline column if it doesn't exist
+    cursor.execute("ALTER TABLE todos ADD COLUMN deadline TIMESTAMP")
+    # Rename category to priority
+    cursor.execute("ALTER TABLE todos ADD COLUMN priority TEXT")
+    # Copy data from category to priority
+    cursor.execute("UPDATE todos SET priority = category WHERE category IS NOT NULL")
+    # Drop old category column (SQLite doesn't support ALTER COLUMN, so we handle it in queries)
+    conn.commit()
+    conn.close()
+except sqlite3.OperationalError:
+    pass  # Columns already exist
+
 app = FastAPI()
 
 # Add CORS middleware
@@ -113,6 +128,97 @@ def speak_note(note_id: int):
                 "Cache-Control": "no-cache"
             }
         )
+    finally:
+        db.close()
+
+# ============== TODO ENDPOINTS ==============
+
+@app.post("/todos/")
+def create_todo(title: str, description: str = None, priority: str = None, deadline: str = None):
+    from datetime import datetime
+    db = SessionLocal()
+    try:
+        deadline_dt = None
+        if deadline:
+            deadline_dt = datetime.fromisoformat(deadline.replace('Z', '+00:00'))
+        
+        todo = Todo(title=title, description=description, priority=priority, deadline=deadline_dt)
+        db.add(todo)
+        db.commit()
+        db.refresh(todo)
+        return todo
+    finally:
+        db.close()
+
+@app.get("/todos/")
+def get_todos():
+    db = SessionLocal()
+    try:
+        todos = db.query(Todo).all()
+        return todos
+    finally:
+        db.close()
+
+@app.get("/todos/{todo_id}")
+def get_todo(todo_id: int):
+    db = SessionLocal()
+    try:
+        todo = db.query(Todo).get(todo_id)
+        if not todo:
+            raise HTTPException(status_code=404, detail="Todo not found")
+        return todo
+    finally:
+        db.close()
+
+@app.put("/todos/{todo_id}")
+def update_todo(todo_id: int, title: str = None, description: str = None, priority: str = None, deadline: str = None):
+    from datetime import datetime
+    db = SessionLocal()
+    try:
+        todo = db.query(Todo).get(todo_id)
+        if not todo:
+            raise HTTPException(status_code=404, detail="Todo not found")
+        
+        if title is not None:
+            todo.title = title
+        if description is not None:
+            todo.description = description
+        if priority is not None:
+            todo.priority = priority
+        if deadline is not None:
+            todo.deadline = datetime.fromisoformat(deadline.replace('Z', '+00:00'))
+            
+        db.commit()
+        db.refresh(todo)
+        return todo
+    finally:
+        db.close()
+
+@app.delete("/todos/{todo_id}")
+def delete_todo(todo_id: int):
+    db = SessionLocal()
+    try:
+        todo = db.query(Todo).get(todo_id)
+        if not todo:
+            raise HTTPException(status_code=404, detail="Todo not found")
+        db.delete(todo)
+        db.commit()
+        return {"message": "Todo deleted successfully"}
+    finally:
+        db.close()
+
+@app.patch("/todos/{todo_id}/toggle")
+def toggle_todo_completion(todo_id: int):
+    db = SessionLocal()
+    try:
+        todo = db.query(Todo).get(todo_id)
+        if not todo:
+            raise HTTPException(status_code=404, detail="Todo not found")
+        
+        todo.completed = not todo.completed
+        db.commit()
+        db.refresh(todo)
+        return todo
     finally:
         db.close()
 

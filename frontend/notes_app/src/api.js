@@ -53,4 +53,46 @@ export const notesAPI = {
   },
 };
 
+export const todosAPI = {
+  // Get all todos
+  getAllTodos: async () => {
+    const response = await api.get('/todos/');
+    return response.data;
+  },
+
+  // Create a new todo
+  createTodo: async (title, description = null, priority = null, deadline = null) => {
+    const response = await api.post('/todos/', null, {
+      params: { title, description, priority, deadline },
+    });
+    return response.data;
+  },
+
+  // Get a single todo
+  getTodo: async (id) => {
+    const response = await api.get(`/todos/${id}`);
+    return response.data;
+  },
+
+  // Update a todo
+  updateTodo: async (id, title = null, description = null, priority = null, deadline = null) => {
+    const response = await api.put(`/todos/${id}`, null, {
+      params: { title, description, priority, deadline },
+    });
+    return response.data;
+  },
+
+  // Delete a todo
+  deleteTodo: async (id) => {
+    const response = await api.delete(`/todos/${id}`);
+    return response.data;
+  },
+
+  // Toggle todo completion status
+  toggleTodo: async (id) => {
+    const response = await api.patch(`/todos/${id}/toggle`);
+    return response.data;
+  },
+};
+
 export default api;

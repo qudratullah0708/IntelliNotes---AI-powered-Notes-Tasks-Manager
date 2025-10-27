@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import toast, { Toaster } from 'react-hot-toast';
-import Navbar from '../components/Navbar';
 import NoteCard from '../components/NoteCard';
 import NoteModal from '../components/NoteModal';
 import Loader from '../components/Loader';
@@ -73,9 +72,8 @@ const Home = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-dark-teal/5 via-white to-accent-yellow/5">
+    <div className="min-h-screen">
       <Toaster position="top-right" />
-      <Navbar />
       
       <main className="max-w-7xl mx-auto px-6 py-12">
         {isLoading ? (

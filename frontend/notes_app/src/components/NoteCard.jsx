@@ -48,6 +48,21 @@ const NoteCard = ({ note, onEdit, onDelete }) => {
     }
   };
 
+  const formatDate = (dateString) => {
+    if (!dateString) return 'No date';
+    const date = new Date(dateString);
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
+                    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const month = months[date.getMonth()];
+    const day = date.getDate();
+    const year = date.getFullYear();
+    const hours = date.getHours();
+    const minutes = date.getMinutes().toString().padStart(2, '0');
+    const period = hours >= 12 ? 'PM' : 'AM';
+    const displayHour = hours % 12 || 12;
+    return `${month} ${day}, ${year}, ${displayHour}:${minutes} ${period}`;
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 30 }}
@@ -79,9 +94,7 @@ const NoteCard = ({ note, onEdit, onDelete }) => {
             )}
           </div>
           <p className="text-gray-600 text-sm">
-            {note.created_at 
-              ? `Created ${new Date(note.created_at).toLocaleDateString()} ${new Date(note.created_at).toLocaleTimeString()}`
-              : 'Created note'}
+            Created: {note.created_at ? formatDate(note.created_at) : 'No date'}
           </p>
         </div>
 
